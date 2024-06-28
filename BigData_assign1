@@ -1,0 +1,267 @@
+
+CREATE TABLE Customers (
+CustomerID INT,
+Name VARCHAR(100),
+Age INT,
+LocationID INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+load data local inpath '/home/vaishnavi/Big_D/customers.csv' into table customers
++-----------------------+------------------+----------------+-----------------------+
+| customers.customerid  |  customers.name  | customers.age  | customers.locationid  |
++-----------------------+------------------+----------------+-----------------------+
+| 1                     | 'John Doe'       | 30             | 1                     |
+| 2                     | 'Jane Smith'     | 25             | 2                     |
+| 3                     | 'Bob Johnson'    | 35             | 1                     |
+| 4                     | 'Alice Brown'    | 28             | 3                     |
+| 5                     | 'Charlie Davis'  | 32             | 2                     |
++-----------------------+------------------+----------------+-----------------------+
+
+
+
+
+CREATE TABLE Products (
+ProductID INT,
+ProductName VARCHAR(100),
+Category VARCHAR(50),
+Price DECIMAL(10, 2)
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH '/home/vaishnavi/Big_D/product.csv' INTO TABLE products;
+
++---------------------+-----------------------+--------------------+-----------------+
+| products.productid  | products.productname  | products.category  | products.price  |
++---------------------+-----------------------+--------------------+-----------------+
+| 1                   | 'Laptop'              | 'Electronics'      | 800.00          |
+| 2                   | 'Smartphone'          | 'Electronics'      | 400.00          |
+| 3                   | 'T-shirt'             | 'Clothing'         | 20.00           |
+| 4                   | 'Shoes'               | 'Footwear'         | 50.00           |
+| 5                   | 'Bookshelf'           | 'Furniture'        | 150.00          |
+| NULL                | NULL                  | NULL               | NULL            |
++---------------------+-----------------------+--------------------+-----------------+
+
+
+
+CREATE TABLE Sales (
+SaleID INT ,
+CustomerID INT,
+ProductID INT,
+SaleDate STRING,
+Quantity INT,
+TotalAmount DECIMAL(10, 2))
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+LOAD DATA LOCAL INPATH '/home/vaishnavi/Big_D/sales.csv' INTO TABLE sales;
+
++---------------+-------------------+------------------+--------------------------------------------------------+
+| sales.saleid  | sales.customerid  | sales.productid  | sales.saledate  | sales.quantity  | sales.totalamount  |
++---------------+-------------------+------------------+-----------------+-----------------+--------------------+
+| 1             | 1                 | 1                | '2023-01-01'    | 2               | 1600.00            |
+| 2             | 2                 | 3                | '2023-01-02'    | 3               | 60.00              |
+| 3             | 3                 | 2                | '2023-01-03'    | 1               | 400.00             |
+| 4             | 4                 | 4                | '2023-02-01'    | 2               | 100.00             |
+| 5             | 5                 | 5                | '2023-02-02'    | 1               | 150.00             |
++---------------+-------------------+------------------+-----------------+-----------------+--------------------+
+
+
+CREATE TABLE Locations (
+LocationID INT,
+City VARCHAR(50),
+State VARCHAR(50)
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+ LOAD DATA LOCAL INPATH '/home/vaishnavi/Big_D/locations.csv' INTO TABLE locations;
+
++-----------------------+-----------------+------------------+
+| locations.locationid  | locations.city  | locations.state  |
++-----------------------+-----------------+------------------+
+| 1                     | 'Pune'          | 'Maharashtra'    |
+| 2                     | 'Mumbai'        | 'Maharashtra'    |
+| 3                     | 'Bangalore'     | 'Karnataka'      |
+| 4                     | 'Delhi'         | 'Delhi'          |
+| 5                     | 'Chennai'       | 'Tamil Nadu'     |
++-----------------------+-----------------+------------------+
+
+
+
+A. Retrieve the names of all customers who made a purchase.
+    >SELECT s.customerid, c.name,s.productId,p.productname FROM sales s
+    > JOIN customers c ON c.customerid = s.customerid
+    > JOIN products p ON s.productId = p.productId
+    +---------------+------------------+--------------+----------------+
+    | s.customerid  |      c.name      | s.productid  | p.productname  |
+    +---------------+------------------+--------------+----------------+
+    | 1             | 'John Doe'       | 1            | 'Laptop'       |
+    | 2             | 'Jane Smith'     | 3            | 'T-shirt'      |
+    | 3             | 'Bob Johnson'    | 2            | 'Smartphone'   |
+    | 4             | 'Alice Brown'    | 4            | 'Shoes'        |
+    | 5             | 'Charlie Davis'  | 5            | 'Bookshelf'    |
+    +---------------+------------------+--------------+----------------+
+    5 rows selected (18.353 seconds)
+
+
+
+
+B. List the products and their total sales amounts for a given date range.
+    > SELECT    s.productid,   SUM(s.totalamount) AS total_sales_amount
+    >FROM    sales s
+    >WHERE    s.saledate BETWEEN '2023-01-01' AND '2023-01-31'
+    >GROUP BY    s.productid;
+
+    +--------------+---------------------+
+    | s.productid  | total_sales_amount  |
+    +--------------+---------------------+
+    | 1            | 1600.00             |
+    | 2            | 400.00              |
+    | 3            | 60.00               |
+    +--------------+---------------------+
+
+
+
+
+C. Find the total sales amount for each product category.
+    >select productID, category from products;
+    >select productID, totalamount from sales;
+
+    >select p.category, sum(s.totalamount) 
+    >from products p 
+    >join sales s 
+    >on p.productID = s.productID 
+    >GROUP BY p.category;
+
+    +--------------+----------+
+    |  p.category  |   _c1    |
+    +--------------+----------+
+    | Clothing     | 60.00    |
+    | Electronics  | 2000.00  |
+    | Footwear     | 100.00   |
+    | Furniture    | 150.00   |
+    +--------------+----------+
+D. Identify the customers who made purchases in a speci c city.
+    >select c.name, l.city  
+    >from customers c 
+    >join locations l 
+    >on c.locationid = l.locationid;
+
+    +----------------+------------+
+    |     c.name     |   l.city   |
+    +----------------+------------+
+    | John Doe       | Pune       |
+    | Bob Johnson    | Pune       |
+    | Jane Smith     | Mumbai     |
+    | Charlie Davis  | Mumbai     |
+    | Alice Brown    | Bangalore  |
+    +----------------+------------+
+    >select c.name, l.city  
+    >from customers c 
+    >join locations l 
+    >on c.locationid = l.locationid
+    >where l.city = 'Pune';
+
+    +--------------+---------+
+    |    c.name    | l.city  |
+    +--------------+---------+
+    | John Doe     | Pune    |
+    | Bob Johnson  | Pune    |
+    +--------------+---------+
+
+E. Calculate the average age of customers who bought products in the 'Electronics' category.
+    >select avg(c.age), p.category
+    >from sales s 
+    >join customers c on s.customerid = c.customerid
+    >join products p on s.productID = p.productID
+    >where p.category = 'Electronics'
+    >GROUP by p.category;
+
+    +-------+--------------+
+    |  avg(age)  |  p.category  |
+    +-------+--------------+
+    | 32.5  | Electronics  |
+    +-------+--------------+
+
+
+F. List the top 3 products based on total sales amount.
+    >select p.productname, s.totalamount 
+    >from sales s 
+    >join products p
+    >on p.productID = s.productID
+    >order by s.totalamount 
+    >desc limit 3;
+
+    +----------------+----------------+
+    | p.productname  | s.totalamount  |
+    +----------------+----------------+
+    | Laptop         | 1600.00        |
+    | Smartphone     | 400.00         |
+    | Bookshelf      | 150.00         |
+    +----------------+----------------+
+
+G. Find the total sales amount for each month.
+    >select month(saledate), sum(totalamount) from sales GROUP BY month(saledate);
+
+    +------+----------+
+    | _c0  |   _c1    |
+    +------+----------+
+    | 1    | 2060.00  |
+    | 2    | 250.00   |
+    +------+----------+
+
+H. Identify the products with no sales.
+    >SELECT p.productid, p.productname
+    >FROM products p
+    >LEFT JOIN sales s ON p.productid = s.productid
+    >WHERE s.saleid IS NULL;
+
+    +--------------+----------------+
+    | p.productid  | p.productname  |
+    +--------------+----------------+
+    +--------------+----------------+
+
+I. Calculate the total sales amount for each state.
+    >select customerid, locationid from customers;
+    >select locationid, state from locations;
+    >select customerid, totalamount from sales;
+
+    >select l.state, sum(s.totalamount)
+    >from customers c 
+    >join locations l on c.locationid = l.locationid
+    >join sales s on c.customerid = s.customerid
+    >GROUP BY l.state;
+
+    +--------------+----------+
+    |   l.state    |   _c1    |
+    +--------------+----------+
+    | Karnataka    | 100.00   |
+    | Maharashtra  | 2210.00  |
+    +--------------+----------+
+
+
+J. Retrieve the customer names and their highest purchase amount.
+    >select c.name, max(s.totalamount)
+    >from customers c 
+    >join sales s 
+    >on c.customerid = s.customerid
+    >GROUP BY c.name;
+
+    +----------------+----------+
+    |     c.name     |   _c1    |
+    +----------------+----------+
+    | Alice Brown    | 100.00   |
+    | Bob Johnson    | 400.00   |
+    | Charlie Davis  | 150.00   |
+    | Jane Smith     | 60.00    |
+    | John Doe       | 1600.00  |
+    +----------------+----------+
+
+
